@@ -1,0 +1,11 @@
+requests
+psycopg[binary]
+python-dotenv
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+youtube-transcript-api
+openai
+google-genai
+google-genai

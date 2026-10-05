@@ -1,0 +1,68 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: genshin_postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: genshin_agent
+      POSTGRES_USER: genshin
+      POSTGRES_PASSWORD: genshin_dev_password
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    ports:
+      - "5432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U genshin -d genshin_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: genshin_agent
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: genshin_agent
+      POSTGRES_USER: genshin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL}
+
+      OLLAMA_URL: http://host.docker.internal:11434
+      OLLAMA_MODEL: qwen3:1.7b
+
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    volumes:
+      - .:/app
+
+    ports:
+      - "8085:8085"
+
+    working_dir: /app
+
+    command: sleep infinity
+
+    restart: unless-stopped
+volumes:
+  postgres_data:
